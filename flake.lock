@@ -1,0 +1,79 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1794042290,
+        "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "qingjian": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794395086,
+        "narHash": "sha256-mpZB9DgpP0WiqGNoA/EwLNAyU7e3g8X2tfN6E5S5cFM=",
+        "owner": "qingjian-team",
+        "repo": "qingjian",
+        "rev": "ccd9da5483b4000469159ef9dd04e82180189bbb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "qingjian-team",
+        "repo": "qingjian",
+        "type": "github"
+      }
+    },
+    "qingjian-data": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794048791,
+        "narHash": "sha256-/YnqvuDBf/VIAWeznX4uWGpJZq73YFFW0GG745BBioU=",
+        "type": "tarball",
+        "url": "https://github.com/qingjian-team/qingjian/releases/download/data-v10/qingjian-data.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/qingjian-team/qingjian/releases/download/data-v10/qingjian-data.tar.gz"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "qingjian": "qingjian",
+        "qingjian-data": "qingjian-data",
+        "rust-overlay": "rust-overlay"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794388042,
+        "narHash": "sha256-rsskkiDNmuZGK6Xk3JvWUxWENjuX4Jf0hOSFYujGC0s=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "0070500a3d72ade21323092e7bdd7125c5268482",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

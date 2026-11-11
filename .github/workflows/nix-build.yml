@@ -1,0 +1,63 @@
+name: nix-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nix-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 安装 Nix
+        uses: determinatesystems/nix-installer-action@v16
+
+      - name: 构建 server 与 fcitx5 插件
+        id: build
+        run: |
+          set -uo pipefail
+          build() {
+            nix build .#qingjianServer .#qingjianFcitx5 --no-link --print-build-logs \
+              --option substituters "https://cache.nixos.org" 2>&1 | tee /tmp/build.log
+          }
+          if build; then
+            echo "FIXED_HASH=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          GOT=$(grep -oP 'got:\s+sha256-\S+' /tmp/build.log | head -1 | awk '{print $2}' || true)
+          if [ -n "$GOT" ] && grep -qE 'cargoHash or cargoSha256 is out of date|hash mismatch in fixed-output derivation' /tmp/build.log; then
+            echo "cargoHash 过期，改为 $GOT"
+            sed -i "s|cargoHash = \"[^\"]*\"|cargoHash = \"$GOT\"|; s|cargoHash = lib.fakeHash;|cargoHash = \"$GOT\";|" packages/server.nix
+            echo "FIXED_HASH=$GOT" >> "$GITHUB_ENV"
+            build
+          else
+            echo "::error::构建失败（非 cargoHash 问题）"
+            exit 1
+          fi
+
+      - name: 有新的 cargoHash 则提交
+        if: github.event_name == 'push' && env.FIXED_HASH != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/server.nix
+          if git diff --cached --quiet; then
+            echo "无变化"
+          else
+            git commit -m "chore(nix): 更新 cargoHash（${{ env.FIXED_HASH }}）"
+            git push origin main
+          fi
