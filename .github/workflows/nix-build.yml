@@ -25,12 +25,12 @@ jobs:
       - name: 安装 Nix
         uses: determinatesystems/nix-installer-action@v16
 
-      - name: 构建 server 与 fcitx5 插件
+      - name: 构建 server、fcitx5 插件与数据包
         id: build
         run: |
           set -uo pipefail
           build() {
-            nix build .#qingjianServer .#qingjianFcitx5 --no-link --print-build-logs \
+            nix build .#qingjianServer .#qingjianFcitx5 .#qingjianData --no-link --print-build-logs \
               --option substituters "https://cache.nixos.org" 2>&1 | tee /tmp/build.log
           }
           if build; then
@@ -38,14 +38,14 @@ jobs:
             exit 0
           fi
 
-          GOT=$(grep -oP 'got:\s+sha256-\S+' /tmp/build.log | head -1 | awk '{print $2}' || true)
-          if [ -n "$GOT" ] && grep -qE 'cargoHash or cargoSha256 is out of date|hash mismatch in fixed-output derivation' /tmp/build.log; then
+          GOT=$(grep -B2 'got:\s*sha256-' /tmp/build.log | grep -oP 'got:\s+sha256-\S+' | head -1 | awk '{print $2}' || true)
+          if [ -n "$GOT" ] && grep -q 'vendor.drv' /tmp/build.log; then
             echo "cargoHash 过期，改为 $GOT"
             sed -i "s|cargoHash = \"[^\"]*\"|cargoHash = \"$GOT\"|; s|cargoHash = lib.fakeHash;|cargoHash = \"$GOT\";|" packages/server.nix
             echo "FIXED_HASH=$GOT" >> "$GITHUB_ENV"
             build
           else
-            echo "::error::构建失败（非 cargoHash 问题）"
+            echo "::error::构建失败（非 cargoHash 问题；若为数据包 hash mismatch，说明官方 lock 与资产不一致，需人工核对）"
             exit 1
           fi
 

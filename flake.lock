@@ -32,24 +32,10 @@
         "type": "github"
       }
     },
-    "qingjian-data": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1794048791,
-        "narHash": "sha256-/YnqvuDBf/VIAWeznX4uWGpJZq73YFFW0GG745BBioU=",
-        "type": "tarball",
-        "url": "https://github.com/qingjian-team/qingjian/releases/download/data-v10/qingjian-data.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/qingjian-team/qingjian/releases/download/data-v10/qingjian-data.tar.gz"
-      }
-    },
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
         "qingjian": "qingjian",
-        "qingjian-data": "qingjian-data",
         "rust-overlay": "rust-overlay"
       }
     },

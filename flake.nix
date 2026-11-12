@@ -13,11 +13,6 @@
       url = "github:qingjian-team/qingjian";
       flake = false;
     };
-
-    qingjian-data = {
-      url = "https://github.com/qingjian-team/qingjian/releases/download/data-v10/qingjian-data.tar.gz";
-      flake = false;
-    };
   };
 
   outputs =
@@ -49,16 +44,20 @@
       qingjianFcitx5 = pkgs.callPackage ./packages/fcitx5.nix {
         qingjianSrc = inputs.qingjian;
       };
+
+      qingjianData = pkgs.callPackage ./packages/data.nix {
+        qingjianSrc = inputs.qingjian;
+      };
     in
     {
       packages.${system} = {
-        inherit qingjianServer qingjianFcitx5;
+        inherit qingjianServer qingjianFcitx5 qingjianData;
         default = qingjianFcitx5;
       };
 
       nixosModules.default = import ./modules/nixos.nix {
         inherit qingjianFcitx5 qingjianServer;
-        dataPackage = inputs."qingjian-data";
+        dataPackage = qingjianData;
       };
 
       devShells.${system}.default = pkgs.mkShell {

@@ -1,9 +1,9 @@
 # 青简 NixOS 模块：
 #   1) 把 fcitx5 插件并进 `i18n.inputMethod.fcitx5.addons`（桌面机共用）；
 #   2) 以用户级 systemd 服务拉起 qingjian-server，并把数据根以
-#      QINGJIAN_RESOURCES 注入（官方 server 认的环境变量；数据默认由本 flake 的
-#      qingjian-data input 解包出官方 data-v3 布局：data/generated + data/models/
-#      hanzhang-* + assets，启用即默认载入；需要自定义时用 services.qingjian.dataDir 覆盖）。
+#      QINGJIAN_RESOURCES 注入（官方 server 认的环境变量；数据默认由本 flake 按
+#      官方 tools/release/dicts.lock + models.lock 组装成 data/generated + data/models
+#      布局，跟随 qingjian 源码 input 自动更新；需要自定义时用 services.qingjian.dataDir 覆盖）。
 #
 # 配置哲学（混合式）：
 #   - 基础设施（装不装 / 服务怎么跑 / 数据从哪来）→ 本模块声明式 options；
@@ -21,13 +21,13 @@
 let
   cfg = config.services.qingjian;
 
-  # 默认数据根：上游 release 数据包（官方 data-v3 布局）原样解包即资源根——
+  # 默认数据根：按官方 lock 文件组装出的数据包即资源根——
   # data/generated（dict/lm/glossary）+ data/models/hanzhang-*（整句模型）+
   # assets/（可选，缺失自动降级）。store 输入只读，复制后放开写权限再清理
   # macOS AppleDouble 冗余（._ 前缀）。
   assembledData = pkgs.runCommand "qingjian-data" { } ''
-    # nix flake=false tarball input 会剥离 tar 单层顶层目录（data-v3 顶层是 data/），
-    # 所以 ${dataPackage} 解包后直接是 generated/ + models/。这里补回 data/ 层，
+    # ${dataPackage} 的顶层是 generated/ + models/，与官方 data/ 目录同构。
+    # 这里补回 data/ 层，
     # 使 $out 成为符合官方约定的资源根（data/generated + data/models + assets）。
     mkdir -p $out/data
     cp -r ${dataPackage}/. $out/data/
@@ -42,11 +42,11 @@ in
     dataDir = lib.mkOption {
       type = lib.types.path;
       default = assembledData;
-      defaultText = lib.literalExpression "fork 内置数据包组装（qingjian-data，官方 data-v3 布局）";
+      defaultText = lib.literalExpression "按官方 dicts.lock/models.lock 组装的数据包（qingjian-data）";
       description = ''
         青简资源根目录（含 data/generated、data/models/hanzhang-*、assets 的子目录，
-        即官方 server 的 QINGJIAN_RESOURCES 所指）。默认由本 flake 的 qingjian-data
-        input 解包组装；需要换用其他数据源时覆盖为自定义目录。
+        即官方 server 的 QINGJIAN_RESOURCES 所指）。默认由本 flake 按官方
+        tools/release/dicts.lock + models.lock 下载组装；需要换用其他数据源时覆盖。
       '';
     };
 
