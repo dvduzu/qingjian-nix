@@ -19,11 +19,11 @@
     "qingjian": {
       "flake": false,
       "locked": {
-        "lastModified": 1794395086,
-        "narHash": "sha256-mpZB9DgpP0WiqGNoA/EwLNAyU7e3g8X2tfN6E5S5cFM=",
+        "lastModified": 1794469166,
+        "narHash": "sha256-bCRFuVMEEik0otlyN0U7Kc9fktnYDZtUsHtJ/rjp288=",
         "owner": "qingjian-team",
         "repo": "qingjian",
-        "rev": "ccd9da5483b4000469159ef9dd04e82180189bbb",
+        "rev": "9b50d8d82eb701766236704dc2a4e6be0badf5c1",
         "type": "github"
       },
       "original": {
