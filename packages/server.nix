@@ -22,7 +22,7 @@ rustPlatform.buildRustPackage {
     cargoTestFlags = "-p qingjian-linux-server";
   };
 
-  cargoHash = "sha256-szjKr19B+S7ba4TBYGl1mC4S5ffBCoLNgTWp3L8bnJI=";
+  cargoHash = "sha256-8QsnwY8uT5DFXR0Ohx15rtNWq5ALL811hG5cED53w/Q=";
 
   installPhase = ''
     mkdir -p "$out/bin"
