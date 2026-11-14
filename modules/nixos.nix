@@ -26,11 +26,7 @@ let
   # assets/（可选，缺失自动降级）。store 输入只读，复制后放开写权限再清理
   # macOS AppleDouble 冗余（._ 前缀）。
   assembledData = pkgs.runCommand "qingjian-data" { } ''
-    # ${dataPackage} 的顶层是 generated/ + models/，与官方 data/ 目录同构。
-    # 这里补回 data/ 层，
-    # 使 $out 成为符合官方约定的资源根（data/generated + data/models + assets）。
-    mkdir -p $out/data
-    cp -r ${dataPackage}/. $out/data/
+    cp -r ${dataPackage}/. $out/
     chmod -R u+w $out
     find $out -name '._*' -delete
   '';

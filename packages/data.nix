@@ -47,21 +47,22 @@ let
   };
 
   installDict = entry: ''
-    mkdir -p "$out/generated/$(dirname '${entry.installed}')"
-    gzip -dc ${fetchDict entry} > "$out/generated/${entry.installed}"
+    mkdir -p "$out/data/generated/$(dirname '${entry.installed}')"
+    gzip -dc ${fetchDict entry} > "$out/data/generated/${entry.installed}"
   '';
 
   installModel = entry: ''
     mkdir -p extract
     tar -xzf ${fetchModel entry} -C extract
-    mkdir -p "$(dirname "$out/${lib.removePrefix "data/" entry.installed}")"
+    mkdir -p "$(dirname "$out/data/${lib.removePrefix "data/" entry.installed}")"
     find extract -type f -name '${baseNameOf entry.installed}' \
-      -exec cp {} "$out/${lib.removePrefix "data/" entry.installed}" \;
+      -exec cp {} "$out/data/${lib.removePrefix "data/" entry.installed}" \;
     rm -rf extract
   '';
 in
 runCommand "qingjian-data" { nativeBuildInputs = [ gzip ]; } ''
-  mkdir -p $out
+  mkdir -p $out/data $out/assets
   ${lib.concatMapStrings installDict dicts}
   ${lib.concatMapStrings installModel models}
+  cp -r ${qingjianSrc}/assets/emoji $out/assets/emoji
 ''
