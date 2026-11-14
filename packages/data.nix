@@ -1,4 +1,4 @@
-{ lib, runCommand, fetchurl, gzip, qingjianSrc }:
+{ lib, runCommand, fetchurl, gzip, python3, qingjianSrc }:
 let
   readLock = name: "${qingjianSrc}/tools/release/${name}";
 
@@ -60,9 +60,38 @@ let
     rm -rf extract
   '';
 in
-runCommand "qingjian-data" { nativeBuildInputs = [ gzip ]; } ''
-  mkdir -p $out/data $out/assets
+runCommand "qingjian-data" { nativeBuildInputs = [ gzip python3 ]; } ''
+  mkdir -p $out/data $out/assets/emoji
   ${lib.concatMapStrings installDict dicts}
   ${lib.concatMapStrings installModel models}
-  cp -r ${qingjianSrc}/assets/emoji $out/assets/emoji
+  python3 - ${./emoji-zh-extra.tsv} ${qingjianSrc}/assets/emoji/emoji-zh.tsv "$out/assets/emoji/emoji-zh.tsv" <<'PY'
+import sys
+
+extra_path, source_path, out_path = sys.argv[1:4]
+
+extra = {}
+order = []
+with open(extra_path, encoding="utf-8") as file:
+    for line in file:
+        line = line.rstrip("\n")
+        if not line or line.startswith("#"):
+            continue
+        word, emojis = line.split("\t", 1)
+        extra[word] = emojis
+        order.append(word)
+
+kept = []
+with open(source_path, encoding="utf-8") as file:
+    for line in file:
+        if not line.strip() or line.startswith("#"):
+            continue
+        if line.split("\t", 1)[0] not in extra:
+            kept.append(line.rstrip("\n"))
+
+merged = kept + [f"{word}\t{extra[word]}" for word in order]
+with open(out_path, "w", encoding="utf-8") as file:
+    file.write("\n".join(merged) + "\n")
+PY
+  cp ${qingjianSrc}/assets/emoji/emoji-en.tsv $out/assets/emoji/emoji-en.tsv
+  cp ${qingjianSrc}/assets/emoji/LICENSE-unicode.txt $out/assets/emoji/LICENSE-unicode.txt
 ''
