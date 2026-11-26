@@ -20,7 +20,7 @@
       self,
       nixpkgs,
       rust-overlay,
-      ... 
+      ...
     }@inputs:
     let
       system = "x86_64-linux";
@@ -30,7 +30,10 @@
         overlays = [ (import rust-overlay) ];
       };
 
-      rustToolchain = pkgs.rust-bin.stable."1.96.0".default;
+      rustVersion =
+        (builtins.fromTOML (builtins.readFile "${inputs.qingjian}/rust-toolchain.toml")).toolchain.channel;
+
+      rustToolchain = pkgs.rust-bin.stable.${rustVersion}.default;
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rustToolchain;
         rustc = rustToolchain;
@@ -73,7 +76,7 @@
           openssl
         ];
         shellHook = ''
-          rustup toolchain install 1.96.0 --profile minimal 2>/dev/null || true
+          rustup toolchain install ${rustVersion} --profile minimal 2>/dev/null || true
           export PATH="$HOME/.cargo/bin:$PATH"
         '';
       };

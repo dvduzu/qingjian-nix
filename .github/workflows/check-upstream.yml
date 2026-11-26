@@ -40,19 +40,30 @@ jobs:
             nix build .#qingjianServer .#qingjianData --no-link --print-build-logs \
               --option substituters "https://cache.nixos.org" 2>&1 | tee /tmp/build.log
           }
-          if build; then
-            echo "构建通过"
-          else
+          for attempt in 1 2 3; do
+            if build; then
+              echo "构建通过"
+              exit 0
+            fi
+            fixed=false
             GOT=$(grep -oP 'got:\s+sha256-\S+' /tmp/build.log | head -1 | awk '{print $2}' || true)
             if [ -n "$GOT" ] && grep -q 'vendor.drv' /tmp/build.log; then
               echo "cargoHash 过期，更新为 $GOT"
               sed -i "s|cargoHash = \"[^\"]*\"|cargoHash = \"$GOT\"|" packages/server.nix
-              build || { echo "::error::hash 修复后仍构建失败"; exit 1; }
-            else
-              echo "::error::构建失败（非 cargoHash：可能是官方数据 lock 变更或多块模型，需人工适配）"
+              fixed=true
+            fi
+            if grep -qE "requires rustc|not supported by the following packages|attribute '[0-9.]+' missing" /tmp/build.log; then
+              echo "官方 Rust 工具链已升级，更新 rust-overlay"
+              nix flake lock --update-input rust-overlay 2>&1 | tail -3
+              fixed=true
+            fi
+            if [ "$fixed" = false ]; then
+              echo "::error::构建失败（非 cargoHash/Rust 版本问题：可能是官方数据 lock 变更或多块模型，需人工适配）"
               exit 1
             fi
-          fi
+          done
+          echo "::error::多次修复后仍构建失败"
+          exit 1
 
       - name: 有更新则提交推送
         if: env.UPDATED == 'true' && success()
